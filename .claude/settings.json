@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [{ "type": "command", "command": "[[ -d .jj ]] && jj status >/dev/null 2>&1 || true" }]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [{ "type": "command", "command": "[[ -d .jj ]] && jj status >/dev/null 2>&1 || true" }]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [{ "type": "command", "command": "[[ -d .jj ]] && jj status >/dev/null 2>&1 || true" }]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "*",
+        "hooks": [{ "type": "command", "command": "[[ -d .jj ]] && jj status >/dev/null 2>&1 || true" }]
+      }
+    ]
+  }
+}
