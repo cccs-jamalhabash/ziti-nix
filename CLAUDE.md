@@ -10,7 +10,7 @@ NixOS module and Nix package for [OpenZiti](https://openziti.io), a programmable
 - NixOS modules for three components: **controller**, **router**, and **tunnel**
 - A NixOS VM integration test that validates the controller starts with auto-generated PKI
 
-The `ziti` source is fetched from GitHub (pinned to a release tag), not vendored locally. The `ziti/` directory in the repo is a leftover clone and is not used by the flake.
+The `ziti` source is fetched from GitHub (pinned to a release tag), not vendored locally.
 
 ## Project structure
 
@@ -25,6 +25,8 @@ nix/
     tunnel.nix                 — services.openziti.tunnel NixOS module
   tests/
     default.nix                — NixOS VM test (controller with PKI + DB auto-init)
+.claude/
+  settings.json                — Hooks for jj snapshots (Claude Code + VS Code Copilot)
 ```
 
 ## Key commands
@@ -37,6 +39,23 @@ nix flake check                                            # Evaluate + run chec
 nix build .#checks.x86_64-linux.controller-router-test     # Run the VM integration test
 nix develop                                                # Enter dev shell with go + ziti
 ```
+
+## Version control
+
+This repo uses [Jujutsu (jj)](https://github.com/jj-vcs/jj) in colocated mode alongside Git. Key commands:
+
+```bash
+jj log                          # View commit history
+jj status                       # Working copy changes (also triggers a snapshot)
+jj describe -m "message"        # Set commit message on current change
+jj new                           # Start a new change on top of current
+jj bookmark set main -r @-      # Move main bookmark to the just-finished change
+jj git push --bookmark main     # Push to GitHub
+jj edit <change-id>             # Jump back to edit an older change
+jj undo                          # Undo the last jj operation
+```
+
+jj automatically snapshots the working copy at the start of every command. A bash `DEBUG` trap and `.claude/settings.json` hooks ensure snapshots happen before shell commands and AI tool invocations too.
 
 ## Architecture decisions
 
@@ -59,7 +78,6 @@ nix develop                                                # Enter dev shell wit
 
 ## Gotchas
 
-- The `ziti/` directory has its own `.git` — git treats it as a nested repo. Nix flakes can't see files inside it. That's why the package uses `fetchFromGitHub` instead of local source.
 - `mkPackageOption` doesn't work here because `ziti` isn't in nixpkgs. The modules use plain `lib.mkOption { type = lib.types.package; }` instead.
 - The VM test takes ~3–4 minutes. PKI generation + DB init happen in the systemd `preStart` script, so the service startup is slow on first boot.
 - `ziti pki create server` generates its own private key. Don't call `ziti pki create key` separately for the same name — it creates conflicting bundles.
